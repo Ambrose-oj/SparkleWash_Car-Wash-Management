@@ -1,0 +1,191 @@
+import type { Lead, Service, Testimonial } from '../types';
+
+// ─── Mock Leads ───────────────────────────────────────────────────────────────
+
+export const mockLeads: Lead[] = [
+  {
+    id: 'lead-001',
+    name: 'Chukwuemeka Obi',
+    email: 'chukwu.obi@gmail.com',
+    phone: '+234 803 456 7890',
+    businessType: 'Logistics / Delivery',
+    status: 'new',
+    createdAt: '2024-03-15T09:24:00Z',
+    notes: 'Fleet of 12 vehicles, interested in weekly package',
+  },
+  {
+    id: 'lead-002',
+    name: 'Adefunke Adewale',
+    email: 'funke.adewale@yahoo.com',
+    phone: '+234 706 123 4567',
+    businessType: 'Beauty / Salon',
+    status: 'contacted',
+    createdAt: '2024-03-14T14:10:00Z',
+    notes: 'Personal car, wants monthly detailing subscription',
+  },
+  {
+    id: 'lead-003',
+    name: 'Babatunde Fashola',
+    email: 'tunde.fashola@hotmail.com',
+    phone: '+234 812 987 6543',
+    businessType: 'Real Estate',
+    status: 'converted',
+    createdAt: '2024-03-13T11:45:00Z',
+    notes: 'Corporate account signed — 8 executive cars',
+  },
+  {
+    id: 'lead-004',
+    name: 'Ngozi Eze',
+    email: 'ngozi.eze@gmail.com',
+    phone: '+234 901 234 5678',
+    businessType: 'Restaurant / Food Service',
+    status: 'new',
+    createdAt: '2024-03-15T16:30:00Z',
+    notes: 'Catering vans, need exterior only',
+  },
+  {
+    id: 'lead-005',
+    name: 'Emeka Nwosu',
+    email: 'emeka.nwosu@outlook.com',
+    phone: '+234 805 678 9012',
+    businessType: 'Retail / Shop',
+    status: 'contacted',
+    createdAt: '2024-03-12T08:15:00Z',
+  },
+  {
+    id: 'lead-006',
+    name: 'Yetunde Balogun',
+    email: 'yetunde.b@gmail.com',
+    phone: '+234 703 345 6789',
+    businessType: 'Car Wash',
+    status: 'new',
+    createdAt: '2024-03-16T10:00:00Z',
+    notes: 'Competitor researching pricing — handle carefully',
+  },
+  {
+    id: 'lead-007',
+    name: 'Oluwaseun Adeleke',
+    email: 'seun.adeleke@gmail.com',
+    phone: '+234 817 456 7890',
+    businessType: 'Logistics / Delivery',
+    status: 'converted',
+    createdAt: '2024-03-10T13:00:00Z',
+    notes: 'Monthly subscription — 5 cars, paid upfront',
+  },
+  {
+    id: 'lead-008',
+    name: 'Chioma Okafor',
+    email: 'chioma.okafor@gmail.com',
+    phone: '+234 908 901 2345',
+    businessType: 'Beauty / Salon',
+    status: 'new',
+    createdAt: '2024-03-16T15:45:00Z',
+  },
+  {
+    id: 'lead-009',
+    name: 'Taiwo Akintunde',
+    email: 'taiwo.a@yahoo.com',
+    phone: '+234 804 321 0987',
+    businessType: 'Other',
+    status: 'contacted',
+    createdAt: '2024-03-11T09:30:00Z',
+    notes: 'Personal + company cars — negotiating package',
+  },
+  {
+    id: 'lead-010',
+    name: 'Blessing Nkemdirim',
+    email: 'blessing.nk@gmail.com',
+    phone: '+234 702 567 8901',
+    businessType: 'Real Estate',
+    status: 'converted',
+    createdAt: '2024-03-09T12:00:00Z',
+    notes: 'Agency account — 15 showroom vehicles',
+  },
+];
+
+// ─── Services ─────────────────────────────────────────────────────────────────
+
+export const services: Service[] = [
+  {
+    id: 'express',
+    icon: '⚡',
+    title: 'Express Wash',
+    outcome: 'Spotless in 20 minutes',
+    description:
+      'Full exterior hand wash, tyre shine, and window clean. Perfect for busy professionals who need their car looking sharp — fast.',
+    price: '₦3,500',
+    duration: '20 min',
+  },
+  {
+    id: 'premium',
+    icon: '✦',
+    title: 'Premium Detail',
+    outcome: 'Showroom-clean, inside & out',
+    description:
+      'Deep interior vacuum, leather conditioning, full exterior polish, and engine bay cleaning. Your car returns to you feeling brand new.',
+    price: '₦18,000',
+    duration: '2–3 hrs',
+    popular: true,
+  },
+  {
+    id: 'ceramic',
+    icon: '◈',
+    title: 'Ceramic Coating',
+    outcome: '2 years of paint protection',
+    description:
+      'Professional-grade nano-ceramic coating that repels water, UV rays, and contaminants. One treatment. Years of factory-finish shine.',
+    price: '₦85,000',
+    duration: '1 day',
+  },
+  {
+    id: 'fleet',
+    icon: '⊕',
+    title: 'Fleet Care Plan',
+    outcome: 'Every vehicle, every week',
+    description:
+      'Dedicated team assigned to your company fleet. Weekly cleaning schedule, priority booking, and monthly reporting. Corporate pricing available.',
+    price: 'Custom',
+    duration: 'Ongoing',
+  },
+];
+
+// ─── Testimonials ─────────────────────────────────────────────────────────────
+
+export const testimonials: Testimonial[] = [
+  {
+    id: 't1',
+    name: 'Babatunde Fashola',
+    role: 'Real Estate Executive, VI',
+    content:
+      "I've tried every car wash in Lagos. SparkleWash is in a different league. My Range Rover has never looked better — and they come to my office.",
+    rating: 5,
+    avatar: 'BF',
+  },
+  {
+    id: 't2',
+    name: 'Ngozi Achebe',
+    role: 'Founder, NGA Catering',
+    content:
+      'Managing 6 catering vans used to be a headache. Their fleet plan cut our cleaning budget by 40% and our vans always show up spotless.',
+    rating: 5,
+    avatar: 'NA',
+  },
+  {
+    id: 't3',
+    name: 'Oluwakemi Bode-Thomas',
+    role: 'Brand Manager, Lekki',
+    content:
+      'Booked the ceramic coating — absolutely worth every naira. My car sits in Lekki traffic all day and still looks fresh. No regrets.',
+    rating: 5,
+    avatar: 'OB',
+  },
+  {
+    id: 't4',
+    name: 'Emeka Okonkwo',
+    role: 'Logistics Director',
+    content:
+      "They handle our entire delivery fleet — 12 vans. The team is professional, punctual, and the quality is consistent. That's rare in Lagos.",
+    rating: 4,
+    avatar: 'EO',
+  },
+];
