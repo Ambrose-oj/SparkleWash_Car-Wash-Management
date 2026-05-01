@@ -1,4 +1,4 @@
-# SparkleWash
+# SparkleWash - Car Wash Management
 
 A production-ready frontend system built a **Business Growth Landing Page** paired with an **Admin Lead Dashboard** for a fictional premium auto-detailing business.
 

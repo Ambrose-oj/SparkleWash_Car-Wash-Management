@@ -1,14 +1,25 @@
-import { createContext, useContext, useState, ReactNode, useCallback } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from 'react';
 import type { Lead, LeadStatus, ContactFormData } from '../types';
-import { mockLeads } from '../data/mockData';
+import * as api from '../services/mockApi';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+type ApiStatus = 'idle' | 'loading' | 'success' | 'error';
+
 interface LeadsContextValue {
   leads: Lead[];
-  addLead: (data: ContactFormData) => void;
-  updateLeadStatus: (id: string, status: LeadStatus) => void;
-  deleteLead: (id: string) => void;
+  status: ApiStatus;
+  error: string | null;
+  addLead: (data: ContactFormData) => Promise<void>;
+  updateLeadStatus: (id: string, status: LeadStatus) => Promise<void>;
+  deleteLead: (id: string) => Promise<void>;
   totalLeads: number;
   newLeads: number;
   contactedLeads: number;
@@ -22,31 +33,62 @@ const LeadsContext = createContext<LeadsContextValue | undefined>(undefined);
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
 export function LeadsProvider({ children }: { children: ReactNode }) {
-  const [leads, setLeads] = useState<Lead[]>(mockLeads);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [status, setStatus] = useState<ApiStatus>('idle');
+  const [error, setError] = useState<string | null>(null);
 
-  const addLead = useCallback((data: ContactFormData) => {
-    const newLead: Lead = {
-      id: `lead-${Date.now()}`,
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      businessType: data.businessType as Lead['businessType'],
-      status: 'new',
-      createdAt: new Date().toISOString(),
+  // ── Fetch all leads on mount (GET /leads) ──────────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    setStatus('loading');
+
+    api
+      .getLeads()
+      .then((res) => {
+        if (!cancelled) {
+          setLeads(res.data);
+          setStatus('success');
+        }
+      })
+      .catch((err: Error) => {
+        if (!cancelled) {
+          setError(err.message);
+          setStatus('error');
+        }
+      });
+
+    return () => {
+      cancelled = true;
     };
-    setLeads((prev) => [newLead, ...prev]);
   }, []);
 
-  const updateLeadStatus = useCallback((id: string, status: LeadStatus) => {
-    setLeads((prev) =>
-      prev.map((lead) => (lead.id === id ? { ...lead, status } : lead))
-    );
+  // ── POST /leads ────────────────────────────────────────────────────────────
+  const addLead = useCallback(async (data: ContactFormData) => {
+    const res = await api.createLead(data);
+    setLeads((prev) => [res.data, ...prev]);
   }, []);
 
-  const deleteLead = useCallback((id: string) => {
-    setLeads((prev) => prev.filter((lead) => lead.id !== id));
+  // ── PATCH /leads/:id/status ────────────────────────────────────────────────
+  const updateLeadStatus = useCallback(
+    async (id: string, newStatus: LeadStatus) => {
+      // Optimistic update first
+      setLeads((prev) =>
+        prev.map((l) => (l.id === id ? { ...l, status: newStatus } : l))
+      );
+      // Reconcile with server response
+      const res = await api.updateLeadStatus(id, newStatus);
+      setLeads((prev) => prev.map((l) => (l.id === id ? res.data : l)));
+    },
+    []
+  );
+
+  // ── DELETE /leads/:id ──────────────────────────────────────────────────────
+  const deleteLead = useCallback(async (id: string) => {
+    setLeads((prev) => prev.filter((l) => l.id !== id));
+    await api.deleteLead(id);
   }, []);
 
+  // ── Derived stats ──────────────────────────────────────────────────────────
   const totalLeads = leads.length;
   const newLeads = leads.filter((l) => l.status === 'new').length;
   const contactedLeads = leads.filter((l) => l.status === 'contacted').length;
@@ -56,6 +98,8 @@ export function LeadsProvider({ children }: { children: ReactNode }) {
     <LeadsContext.Provider
       value={{
         leads,
+        status,
+        error,
         addLead,
         updateLeadStatus,
         deleteLead,
@@ -75,7 +119,7 @@ export function LeadsProvider({ children }: { children: ReactNode }) {
 export function useLeads(): LeadsContextValue {
   const context = useContext(LeadsContext);
   if (!context) {
-    throw new Error('useLeads must be used inside LeadsProvider');
+    throw new Error('useLeads must be used inside <LeadsProvider>');
   }
   return context;
 }
