@@ -1,21 +1,50 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Testimonial } from '../../types';
-import { getTestimonials } from '../../services/mockApi';
+
+const TESTIMONIALS: Testimonial[] = [
+  {
+    id: 't1',
+    name: 'Babatunde Fashola',
+    role: 'Real Estate Executive, VI',
+    content:
+      "I've tried every car wash in Lagos. SparkleWash is in a different league. My Range Rover has never looked better — and they come to my office.",
+    rating: 5,
+    avatar: 'BF',
+  },
+  {
+    id: 't2',
+    name: 'Ngozi Achebe',
+    role: 'Founder, NGA Catering',
+    content:
+      'Managing 6 catering vans used to be a headache. Their fleet plan cut our cleaning budget by 40% and our vans always show up spotless.',
+    rating: 5,
+    avatar: 'NA',
+  },
+  {
+    id: 't3',
+    name: 'Oluwakemi Bode-Thomas',
+    role: 'Brand Manager, Lekki',
+    content:
+      'Booked the ceramic coating — absolutely worth every naira. My car sits in Lekki traffic all day and still looks fresh. No regrets.',
+    rating: 5,
+    avatar: 'OB',
+  },
+  {
+    id: 't4',
+    name: 'Emeka Okonkwo',
+    role: 'Logistics Director',
+    content:
+      'They handle our entire delivery fleet — 12 vans. The team is professional, punctual, and the quality is consistent. That\'s rare in Lagos.',
+    rating: 4,
+    avatar: 'EO',
+  },
+];
 
 export function Testimonials() {
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [active, setActive] = useState(0);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    getTestimonials().then((res) => {
-      setTestimonials(res.data);
-      setLoading(false);
-    });
-  }, []);
-
-  const count = testimonials.length;
+  const count = TESTIMONIALS.length;
   const prev = () => setActive((a) => (a - 1 + count) % count);
   const next = () => setActive((a) => (a + 1) % count);
 
@@ -35,46 +64,44 @@ export function Testimonials() {
 
         {/* Desktop grid */}
         <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-5">
-          {loading
-            ? Array.from({ length: 4 }).map((_, i) => <TestimonialSkeleton key={i} />)
-            : testimonials.map((t) => <TestimonialCard key={t.id} testimonial={t} />)}
+          {TESTIMONIALS.map((t) => (
+            <TestimonialCard key={t.id} testimonial={t} />
+          ))}
         </div>
 
         {/* Mobile carousel */}
         <div className="md:hidden">
-          {loading ? (
-            <TestimonialSkeleton />
-          ) : (
-            <div className="relative">
-              <TestimonialCard testimonial={testimonials[active]} />
-              <div className="flex items-center justify-between mt-6">
-                <button
-                  onClick={prev}
-                  className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:border-white/30 transition-colors"
-                  aria-label="Previous"
-                >
-                  <ChevronLeft size={18} />
-                </button>
-                <div className="flex gap-2">
-                  {testimonials.map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setActive(i)}
-                      className={`h-1.5 rounded-full transition-all duration-300 ${i === active ? 'bg-gold w-6' : 'bg-white/20 w-1.5'}`}
-                      aria-label={`Go to slide ${i + 1}`}
-                    />
-                  ))}
-                </div>
-                <button
-                  onClick={next}
-                  className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:border-white/30 transition-colors"
-                  aria-label="Next"
-                >
-                  <ChevronRight size={18} />
-                </button>
+          <div className="relative">
+            <TestimonialCard testimonial={TESTIMONIALS[active]} />
+            <div className="flex items-center justify-between mt-6">
+              <button
+                onClick={prev}
+                className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:border-white/30 transition-colors"
+                aria-label="Previous"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <div className="flex gap-2">
+                {TESTIMONIALS.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setActive(i)}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${
+                      i === active ? 'bg-gold w-6' : 'bg-white/20 w-1.5'
+                    }`}
+                    aria-label={`Go to slide ${i + 1}`}
+                  />
+                ))}
               </div>
+              <button
+                onClick={next}
+                className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:border-white/30 transition-colors"
+                aria-label="Next"
+              >
+                <ChevronRight size={18} />
+              </button>
             </div>
-          )}
+          </div>
         </div>
 
         <div className="mt-16 pt-12 border-t border-white/5 flex flex-col sm:flex-row items-center justify-center gap-8">
@@ -99,10 +126,16 @@ function TestimonialCard({ testimonial: t }: { testimonial: Testimonial }) {
     <div className="rounded-2xl border border-white/8 bg-brand-card p-6 flex flex-col gap-4 hover:border-gold/20 transition-all duration-300">
       <div className="flex gap-1">
         {Array.from({ length: 5 }).map((_, i) => (
-          <Star key={i} size={14} className={i < t.rating ? 'fill-gold text-gold' : 'text-white/20'} />
+          <Star
+            key={i}
+            size={14}
+            className={i < t.rating ? 'fill-gold text-gold' : 'text-white/20'}
+          />
         ))}
       </div>
-      <blockquote className="font-body text-white/70 text-sm leading-relaxed flex-1">"{t.content}"</blockquote>
+      <blockquote className="font-body text-white/70 text-sm leading-relaxed flex-1">
+        "{t.content}"
+      </blockquote>
       <div className="flex items-center gap-3 pt-2 border-t border-white/5">
         <div className="w-9 h-9 rounded-full bg-gold/20 border border-gold/30 flex items-center justify-center text-gold text-xs font-semibold font-body">
           {t.avatar}
@@ -110,30 +143,6 @@ function TestimonialCard({ testimonial: t }: { testimonial: Testimonial }) {
         <div>
           <p className="font-body text-white text-sm font-medium">{t.name}</p>
           <p className="font-body text-white/40 text-xs">{t.role}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function TestimonialSkeleton() {
-  return (
-    <div className="rounded-2xl border border-white/8 bg-brand-card p-6 flex flex-col gap-4 animate-pulse">
-      <div className="flex gap-1">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="w-3 h-3 rounded-full bg-white/5" />
-        ))}
-      </div>
-      <div className="flex flex-col gap-2 flex-1">
-        <div className="h-3 bg-white/5 rounded w-full" />
-        <div className="h-3 bg-white/5 rounded w-5/6" />
-        <div className="h-3 bg-white/5 rounded w-4/6" />
-      </div>
-      <div className="flex items-center gap-3 pt-2 border-t border-white/5">
-        <div className="w-9 h-9 rounded-full bg-white/5" />
-        <div className="flex flex-col gap-1">
-          <div className="h-3 bg-white/5 rounded w-24" />
-          <div className="h-2 bg-white/5 rounded w-16" />
         </div>
       </div>
     </div>

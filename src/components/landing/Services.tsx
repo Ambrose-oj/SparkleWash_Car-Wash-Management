@@ -1,20 +1,55 @@
-import { useState, useEffect } from 'react';
 import { Button } from '../ui/Button';
 import { Clock, Tag } from 'lucide-react';
 import type { Service } from '../../types';
-import { getServices } from '../../services/mockApi';
+
+const SERVICES: Service[] = [
+  {
+    id: 'express',
+    icon: '⚡',
+    title: 'Express Wash',
+    outcome: 'Spotless in 20 minutes',
+    description:
+      'Full exterior hand wash, tyre shine, and window clean. Perfect for busy professionals who need their car looking sharp — fast.',
+    price: '₦3,500',
+    duration: '20 min',
+    popular: false,
+  },
+  {
+    id: 'premium',
+    icon: '✦',
+    title: 'Premium Detail',
+    outcome: 'Showroom-clean, inside & out',
+    description:
+      'Deep interior vacuum, leather conditioning, full exterior polish, and engine bay cleaning. Your car returns to you feeling brand new.',
+    price: '₦18,000',
+    duration: '2–3 hrs',
+    popular: true,
+  },
+  {
+    id: 'ceramic',
+    icon: '◈',
+    title: 'Ceramic Coating',
+    outcome: '2 years of paint protection',
+    description:
+      'Professional-grade nano-ceramic coating that repels water, UV rays, and contaminants. One treatment. Years of factory-finish shine.',
+    price: '₦85,000',
+    duration: '1 day',
+    popular: false,
+  },
+  {
+    id: 'fleet',
+    icon: '⊕',
+    title: 'Fleet Care Plan',
+    outcome: 'Every vehicle, every week',
+    description:
+      'Dedicated team assigned to your company fleet. Weekly cleaning schedule, priority booking, and monthly reporting. Corporate pricing available.',
+    price: 'Custom',
+    duration: 'Ongoing',
+    popular: false,
+  },
+];
 
 export function Services() {
-  const [services, setServices] = useState<Service[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    getServices().then((res) => {
-      setServices(res.data);
-      setLoading(false);
-    });
-  }, []);
-
   const scrollTo = (href: string) =>
     document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
 
@@ -32,11 +67,9 @@ export function Services() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-          {loading
-            ? Array.from({ length: 4 }).map((_, i) => <ServiceSkeleton key={i} />)
-            : services.map((service, i) => (
-                <ServiceCard key={service.id} service={service} index={i} />
-              ))}
+          {SERVICES.map((service, i) => (
+            <ServiceCard key={service.id} service={service} index={i} />
+          ))}
         </div>
 
         <div className="text-center mt-12">
@@ -47,20 +80,6 @@ export function Services() {
         </div>
       </div>
     </section>
-  );
-}
-
-function ServiceSkeleton() {
-  return (
-    <div className="rounded-2xl border border-white/8 bg-brand-card p-6 flex flex-col gap-4 animate-pulse">
-      <div className="w-12 h-12 rounded-xl bg-white/5" />
-      <div className="flex-1 flex flex-col gap-2">
-        <div className="h-4 bg-white/5 rounded w-3/4" />
-        <div className="h-3 bg-white/5 rounded w-1/2" />
-        <div className="h-3 bg-white/5 rounded w-full mt-2" />
-        <div className="h-3 bg-white/5 rounded w-5/6" />
-      </div>
-    </div>
   );
 }
 
