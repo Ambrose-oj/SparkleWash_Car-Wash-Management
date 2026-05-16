@@ -1,83 +1,32 @@
-# SparkleWash - Car Wash Management
+# SparkleWash — Premium Auto Detailing Platform
 
-A production-ready frontend system built a **Business Growth Landing Page** paired with an **Admin Lead Dashboard** for a fictional premium auto-detailing business.
+A full-stack business management platform for a premium auto detailing service in Lagos, Nigeria. Built with React, Express, and PostgreSQL on Supabase.
 
----
-
-## Live Demo
-
-| Part            | URL          |
-| --------------- | ------------ |
-| Landing Page    | `/`          |
-| Admin Dashboard | `/dashboard` |
+**Live Site:** [sparkle-wash-xi.vercel.app](https://sparkle-wash-xi.vercel.app)  
+**Backend API:** [sparklewash-car-wash-management.onrender.com](https://sparklewash-car-wash-management.onrender.com/api/health)
 
 ---
 
-## Tech Stack
+## Overview
 
-| Layer     | Choice                           | Why                                           |
-| --------- | -------------------------------- | --------------------------------------------- |
-| Framework | React 18 + TypeScript            | Industry standard, strict typing, hooks-first |
-| Styling   | TailwindCSS v3                   | Utility-first, zero dead CSS, fast iteration  |
-| Routing   | React Router v6                  | Nested layouts, lazy loading support          |
-| State     | Context API + useReducer pattern | Lightweight, no extra deps for this scope     |
-| Build     | Vite                             | Sub-second HMR, fast production builds        |
-| Fonts     | Cormorant Garamond + DM Sans     | Premium serif for display, clean sans for UI  |
+SparkleWash is a production-ready platform with two sides:
+
+- **Landing Page** — a public-facing site where customers can explore services, read testimonials, book appointments, and submit enquiries
+- **Admin Dashboard** — a protected management interface where staff track leads, manage bookings, and monitor business performance
 
 ---
 
-## Project Structure
+## Demo
+
+**Admin Dashboard Access**  
+Visit the live site and click **Admin** in the navigation, or go directly to `/login`
 
 ```
-src/
-├── components/
-│   ├── ui/               # Reusable primitives: Button, Badge, Input, Select
-│   ├── landing/          # Landing-page sections: Navbar, Hero, Services, Testimonials, Contact, Footer
-│   └── dashboard/        # Dashboard components: Sidebar, DashboardHeader, StatCard, LeadsTable
-├── context/
-│   └── LeadsContext.tsx  # Global leads state with CRUD operations
-├── data/
-│   └── mockData.ts       # Mock leads, services, testimonials
-├── hooks/
-│   ├── useForm.ts        # Contact form state, validation, submission
-│   └── useLeadFilters.ts # Search, filter, sort logic (memoized)
-├── pages/
-│   ├── LandingPage.tsx   # Public-facing landing page
-│   ├── DashboardLayout.tsx  # Dashboard shell with Sidebar + Header
-│   ├── DashboardOverview.tsx # Stats + pipeline view
-│   ├── LeadsPage.tsx     # Full lead management table
-│   └── PlaceholderPage.tsx  # Analytics / Settings stubs
-└── types/
-    └── index.ts          # Shared TypeScript interfaces
+Email:    sparklewash2026admin@gmail.com
+Password: mypassword123
 ```
 
----
-
-## Architecture Decisions
-
-### 1. Separation of Concerns
-
-- All logic (validation, filtering, sorting) lives in **custom hooks**, not components
-- Components are purely presentational or lightly orchestrate hooks
-- Data types are centralized in `types/index.ts` — no duplicated interfaces
-
-### 2. Context API for State
-
-- `LeadsContext` holds all lead data and exposes `addLead`, `updateLeadStatus`, `deleteLead`
-- The landing page form writes directly to this context — leads appear in the dashboard immediately
-- Chose Context API over Zustand to keep dependencies minimal; Zustand would be the natural upgrade path at scale
-
-### 3. Lazy Loading
-
-- All pages are `lazy()`-wrapped with `Suspense` boundaries
-- Landing page sections (Services, Testimonials, Contact) load lazily after the Hero — the above-the-fold experience is instant
-- A consistent skeleton loader maintains visual stability during loads
-
-### 4. Component Reusability
-
-- `Button`, `Input`, `Select`, `Badge`, `StatCard` are fully prop-driven primitives
-- `ServiceCard` and `TestimonialCard` are composable with typed data shapes
-- Zero hardcoded strings inside UI components — all content flows from `mockData.ts`
+> These are read-only demo credentials. The dashboard is fully functional — you can view leads, update statuses, export CSV, and see the booking system in action.
 
 ---
 
@@ -85,106 +34,175 @@ src/
 
 ### Landing Page
 
-- ✅ Animated hero with gradient mesh background
-- ✅ Stats bar (1,200+ cars, 98% satisfaction, 5 years)
-- ✅ 4 service cards with hover CTAs and "Most Popular" badge
-- ✅ Testimonial grid (desktop) + touch carousel (mobile)
-- ✅ Lead capture form with full validation and success state
-- ✅ Collapsible mobile nav
-- ✅ Smooth scroll navigation
+- Services catalog with pricing and duration
+- Customer testimonials carousel (mobile) and grid (desktop)
+- **Booking system** — pick a date, select a service, choose an available time slot. Slots have a max capacity of 3 and conflict detection prevents double-booking
+- Contact / enquiry form that saves leads to the database
 
 ### Admin Dashboard
 
-- ✅ Collapsible sidebar with active route highlighting
-- ✅ Stats overview: Total, New, Contacted, Converted + conversion rate
-- ✅ Pipeline progress bars
-- ✅ Full lead table with sortable columns
-- ✅ Real-time search across name, email, phone, business type
-- ✅ Filter by status + business type
-- ✅ Per-lead status update via dropdown menu
-- ✅ Delete leads
-- ✅ Mobile-responsive card layout
-- ✅ New lead badge on notification bell
+- **Lead management** — view, filter, search, and update status of all inbound leads
+- **Lead scoring** — automatic 0–100 priority score based on business type, lead status, and recency. Leads ranked by score on the overview
+- **CSV export** — download all leads with scores, status, and contact details
+- **Bookings** — view all appointments with date, time slot, service, and status
+- **Analytics pipeline** — visual breakdown of leads by stage
+
+### Backend & Infrastructure
+
+- Express + TypeScript REST API
+- PostgreSQL via Supabase with 4 tables: `leads`, `bookings`, `services`, `users`
+- JWT authentication — protected dashboard routes, token stored in memory
+- Atomic booking conflict detection via database transactions
+- Deployed on Render (backend) + Vercel (frontend)
 
 ---
 
-## Scalability Path
+## Tech Stack
 
-### Phase 2 — Backend Integration
+| Layer      | Technology                               |
+| ---------- | ---------------------------------------- |
+| Frontend   | React 18, TypeScript, Vite, Tailwind CSS |
+| Backend    | Node.js, Express, TypeScript             |
+| Database   | PostgreSQL (Supabase)                    |
+| Auth       | JWT (jsonwebtoken + bcryptjs)            |
+| Deployment | Vercel (frontend), Render (backend)      |
+| State      | React Context API                        |
+| Routing    | React Router v6                          |
+
+---
+
+## Project Structure
 
 ```
-Landing Form → POST /api/leads → PostgreSQL
-Dashboard → GET /api/leads?status=new&page=1
+sparklewash/
+├── src/                        # Frontend (React)
+│   ├── components/
+│   │   ├── landing/            # Hero, Services, Testimonials, Booking, Contact
+│   │   ├── dashboard/          # LeadsTable, StatCard, ScoreBadge, DashboardHeader
+│   │   └── ui/                 # Button, Badge, shared primitives
+│   ├── context/
+│   │   ├── AuthContext.tsx     # JWT auth state
+│   │   └── LeadsContext.tsx    # Lead CRUD + derived stats
+│   ├── pages/                  # LandingPage, LoginPage, Dashboard pages
+│   ├── services/
+│   │   └── api.ts              # Data access layer (db.json for static, API for transactional)
+│   ├── types/                  # Shared TypeScript interfaces
+│   └── utils/
+│       └── exportLeadsToCSV.ts # CSV export with proper escaping
+│
+└── server/                     # Backend (Express)
+    └── src/
+        ├── routes/             # leads, bookings, auth, services, testimonials
+        ├── middleware/         # requireAuth (JWT), errorHandler
+        ├── migrations/         # SQL schema files (001_init, 002_auth, 003_bookings)
+        ├── seeds/              # DB seed from db.json
+        ├── utils/
+        │   └── leadScoring.ts  # 0–100 scoring algorithm
+        └── db.ts               # Supabase PostgreSQL pool
 ```
 
-- Replace `LeadsContext` mock with `react-query` / `SWR` for server state
-- API layer already abstracted — swap `mockData.ts` calls for `services/api.ts`
-
-### Phase 3 — Authentication
-
-- Add `/login` route with JWT auth
-- Protect `/dashboard/*` with a `<RequireAuth>` wrapper
-- Role-based access: Admin vs. Viewer
-
-### Phase 4 — CRM Expansion
-
-- Lead assignment to team members
-- Email/WhatsApp follow-up triggers
-- Activity timeline per lead
-- Revenue attribution per conversion
-
-### Phase 5 — Multi-tenant SaaS
-
-- Each business gets their own `workspaceId`
-- Landing page becomes a template engine
-- Dashboard becomes a white-label product
-
 ---
 
-## Performance Considerations
+## Local Development
 
-- **Lazy loading** on all routes and above-the-fold-optional sections
-- **useMemo** in `useLeadFilters` — filtering/sorting never re-runs unless data or filters change
-- **useCallback** on all context mutations — no unnecessary re-renders down the tree
-- **CSS animations** only — no JS animation libraries, zero jank
-- **Google Fonts** loaded with `preconnect` hints — no render blocking
-- **Vite** tree-shaking removes unused code at build time
-- `clsx` for conditional classes — no string concatenation performance pitfalls
+### Prerequisites
 
----
+- Node.js 18+
+- A Supabase project (free tier works)
 
-## Getting Started
+### 1. Clone and install frontend
 
 ```bash
-# Install
+git clone https://github.com/Ambrose-oj/SparkleWash_Car_Wash_Management.git
+cd SparkleWash_Car_Wash_Management
 npm install
-
-# Dev server
-npm run dev
-
-# Production build
-npm run build
-
-# Preview build
-npm run preview
 ```
 
----
-
-## Deployment
-
-Ready for **Vercel** or **Netlify** with zero config.
+### 2. Set up the backend
 
 ```bash
-# Vercel
-npx vercel --prod
+cd server
+npm install
+cp .env.example .env
+```
 
-# Netlify
-netlify deploy --prod --dir=dist
+Fill in your Supabase connection details in `server/.env`:
+
+```env
+DB_HOST=your-supabase-pooler-host
+DB_PORT=6543
+DB_NAME=postgres
+DB_USER=postgres.your-project-id
+DB_PASSWORD=your-password
+PORT=3001
+NODE_ENV=development
+CORS_ORIGIN=http://localhost:5173
+JWT_SECRET=your-secret-key
+```
+
+### 3. Run migrations and seed
+
+```bash
+npm run migrate   # creates tables
+npm run seed      # populates with sample data
+```
+
+### 4. Start both servers
+
+```bash
+# Terminal 1 — backend
+cd server && npm run dev
+
+# Terminal 2 — frontend
+npm run dev
+```
+
+Frontend runs at `http://localhost:5173`, backend at `http://localhost:3001`.
+
+### 5. Create an admin account
+
+```bash
+curl -X POST http://localhost:3001/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"you@email.com","name":"Your Name","password":"yourpassword"}'
 ```
 
 ---
 
-## Author
+## API Endpoints
 
-> "This isn't about building something flashy for show — it's about proving i create systems that solve real business problems."
+| Method | Endpoint                     | Auth | Description                    |
+| ------ | ---------------------------- | ---- | ------------------------------ |
+| POST   | `/api/auth/register`         | —    | Create first admin account     |
+| POST   | `/api/auth/login`            | —    | Login, returns JWT             |
+| GET    | `/api/auth/me`               | ✓    | Get current user               |
+| GET    | `/api/leads`                 | ✓    | All leads with scores          |
+| POST   | `/api/leads`                 | —    | Submit new lead (contact form) |
+| PATCH  | `/api/leads/:id/status`      | ✓    | Update lead status             |
+| DELETE | `/api/leads/:id`             | ✓    | Delete lead                    |
+| GET    | `/api/bookings/availability` | —    | Available slots for a date     |
+| POST   | `/api/bookings`              | —    | Create booking                 |
+| GET    | `/api/bookings`              | ✓    | All bookings                   |
+| PATCH  | `/api/bookings/:id/status`   | ✓    | Update booking status          |
+| GET    | `/api/services`              | —    | Service catalog                |
+| GET    | `/api/testimonials`          | —    | Testimonials                   |
+
+---
+
+## Lead Scoring
+
+Each lead receives an automatic priority score (0–100) computed on every fetch — never stored in the database so it stays fresh:
+
+| Signal        | Weight | Logic                                          |
+| ------------- | ------ | ---------------------------------------------- |
+| Business type | 0–30   | Logistics/Fleet (30) → Car Wash competitor (8) |
+| Lead status   | 0–40   | Converted (40) → New (10)                      |
+| Recency       | 0–30   | Same day (30) → 30+ days old (4)               |
+
+Leads are ranked by score on the dashboard overview with Hot / Warm / Cool / Cold badges.
+
+---
+
+## License
+
+MIT
