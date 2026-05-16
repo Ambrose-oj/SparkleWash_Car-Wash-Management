@@ -6,6 +6,7 @@ import { authRouter } from './routes/auth';
 import { leadsRouter } from './routes/leads';
 import { servicesRouter } from './routes/services';
 import { testimonialsRouter } from './routes/testimonials';
+import { bookingsRouter } from './routes/bookings';
 import { requireAuth } from './middleware/requireAuth';
 import { errorHandler } from './middleware/errorHandler';
 
@@ -33,6 +34,23 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/auth', authRouter);
 app.use('/api/services', servicesRouter);
 app.use('/api/testimonials', testimonialsRouter);
+
+// ─── Bookings — availability + create are public, rest require auth ───────────
+// A single mount point with a conditional auth middleware.
+// GET /availability and POST / are public (landing page booking form).
+// Everything else (GET all, PATCH status) requires a valid JWT.
+
+app.use('/api/bookings', (req, res, next) => {
+  const isPublic =
+    (req.method === 'GET' && req.path === '/availability') ||
+    (req.method === 'POST' && req.path === '/');
+
+  if (isPublic) {
+    return bookingsRouter(req, res, next);
+  }
+
+  requireAuth(req, res, () => bookingsRouter(req, res, next));
+});
 
 // ─── Protected routes (JWT required) ─────────────────────────────────────────
 

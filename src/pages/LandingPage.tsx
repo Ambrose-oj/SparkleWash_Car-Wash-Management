@@ -11,6 +11,9 @@ const Testimonials = lazy(() =>
     default: m.Testimonials,
   }))
 );
+const Booking = lazy(() =>
+  import('../components/landing/Booking').then((m) => ({ default: m.Booking }))
+);
 const Contact = lazy(() =>
   import('../components/landing/Contact').then((m) => ({ default: m.Contact }))
 );
@@ -34,6 +37,9 @@ export default function LandingPage() {
         </Suspense>
         <Suspense fallback={<SectionLoader />}>
           <Testimonials />
+        </Suspense>
+        <Suspense fallback={<SectionLoader />}>
+          <Booking />
         </Suspense>
         <Suspense fallback={<SectionLoader />}>
           <Contact />
