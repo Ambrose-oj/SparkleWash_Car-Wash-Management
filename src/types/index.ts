@@ -20,6 +20,13 @@ export interface Lead {
   status: LeadStatus;
   createdAt: string; // ISO date string
   notes?: string;
+  // Computed by the backend on every fetch — never stored in the DB
+  score?: number;
+  scoreBreakdown?: {
+    businessType: number;
+    status: number;
+    recency: number;
+  };
 }
 
 // ─── Form Types ───────────────────────────────────────────────────────────────
@@ -70,7 +77,7 @@ export interface LeadFilters {
   businessType: BusinessType | 'all';
 }
 
-export type SortField = 'name' | 'createdAt' | 'status' | 'businessType';
+export type SortField = 'name' | 'createdAt' | 'status' | 'businessType' | 'score';
 export type SortDirection = 'asc' | 'desc';
 
 export interface SortConfig {

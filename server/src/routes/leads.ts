@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { pool } from '../db';
 import { ok, created, HttpError, Lead, LeadStatus, ContactFormData } from '../types';
+import { scoreLead } from '../utils/leadScoring';
 
 export const leadsRouter = Router();
 
@@ -11,7 +12,10 @@ const VALID_STATUSES: LeadStatus[] = ['new', 'contacted', 'converted'];
 
 leadsRouter.get('/', async (_req: Request, res: Response, next: NextFunction) => {
   try {
-    const result = await pool.query<Lead>(`
+    const result = await pool.query<Lead & {
+      businessType: string;
+      createdAt: string;
+    }>(`
       SELECT
         id,
         name,
@@ -25,7 +29,17 @@ leadsRouter.get('/', async (_req: Request, res: Response, next: NextFunction) =>
       ORDER BY created_at DESC
     `);
 
-    res.json(ok(result.rows, `${result.rowCount} leads retrieved`));
+    // Attach score to each lead — computed fresh on every fetch
+    const scored = result.rows.map((lead) => {
+      const { score, scoreBreakdown } = scoreLead(
+        lead.businessType,
+        lead.status as LeadStatus,
+        lead.createdAt
+      );
+      return { ...lead, score, scoreBreakdown };
+    });
+
+    res.json(ok(scored, `${result.rowCount} leads retrieved`));
   } catch (err) {
     next(err);
   }
@@ -37,11 +51,10 @@ leadsRouter.post('/', async (req: Request, res: Response, next: NextFunction) =>
   try {
     const body = req.body as ContactFormData;
 
-    // Validate required fields
-    if (!body.name?.trim()) throw new HttpError(400, 'name is required');
-    if (!body.email?.trim()) throw new HttpError(400, 'email is required');
-    if (!body.phone?.trim()) throw new HttpError(400, 'phone is required');
-    if (!body.businessType) throw new HttpError(400, 'businessType is required');
+    if (!body.name?.trim())         throw new HttpError(400, 'name is required');
+    if (!body.email?.trim())        throw new HttpError(400, 'email is required');
+    if (!body.phone?.trim())        throw new HttpError(400, 'phone is required');
+    if (!body.businessType)         throw new HttpError(400, 'businessType is required');
 
     const id = `lead-${uuidv4()}`;
     const now = new Date();
@@ -50,10 +63,7 @@ leadsRouter.post('/', async (req: Request, res: Response, next: NextFunction) =>
       `INSERT INTO leads (id, name, email, phone, business_type, status, created_at, notes)
        VALUES ($1, $2, $3, $4, $5, 'new', $6, $7)
        RETURNING
-         id,
-         name,
-         email,
-         phone,
+         id, name, email, phone,
          business_type AS "businessType",
          status,
          created_at    AS "createdAt",
@@ -65,11 +75,18 @@ leadsRouter.post('/', async (req: Request, res: Response, next: NextFunction) =>
         body.phone.trim(),
         body.businessType,
         now,
-        body.notes?.trim() ?? '',
+        '',
       ]
     );
 
-    res.status(201).json(created(result.rows[0], 'Lead created successfully'));
+    const lead = result.rows[0];
+    const { score, scoreBreakdown } = scoreLead(
+      lead.businessType,
+      lead.status as LeadStatus,
+      lead.createdAt
+    );
+
+    res.status(201).json(created({ ...lead, score, scoreBreakdown }, 'Lead created'));
   } catch (err) {
     next(err);
   }
@@ -92,14 +109,9 @@ leadsRouter.patch(
       }
 
       const result = await pool.query<Lead>(
-        `UPDATE leads
-         SET status = $1
-         WHERE id = $2
+        `UPDATE leads SET status = $1 WHERE id = $2
          RETURNING
-           id,
-           name,
-           email,
-           phone,
+           id, name, email, phone,
            business_type AS "businessType",
            status,
            created_at    AS "createdAt",
@@ -111,7 +123,14 @@ leadsRouter.patch(
         throw new HttpError(404, `Lead not found: ${id}`);
       }
 
-      res.json(ok(result.rows[0], `Lead status updated to "${status}"`));
+      const lead = result.rows[0];
+      const { score, scoreBreakdown } = scoreLead(
+        lead.businessType,
+        lead.status as LeadStatus,
+        lead.createdAt
+      );
+
+      res.json(ok({ ...lead, score, scoreBreakdown }, `Status updated to "${status}"`));
     } catch (err) {
       next(err);
     }
