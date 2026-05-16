@@ -8,6 +8,7 @@ import {
 } from 'react';
 import type { Lead, LeadStatus, ContactFormData } from '../types';
 import * as api from '../services/api';
+import { useAuth } from './AuthContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -33,17 +34,25 @@ const LeadsContext = createContext<LeadsContextValue | undefined>(undefined);
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
 export function LeadsProvider({ children }: { children: ReactNode }) {
+  const { token } = useAuth();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [status, setStatus] = useState<ApiStatus>('idle');
   const [error, setError] = useState<string | null>(null);
 
-  // ── Fetch all leads on mount (GET /leads) ──────────────────────────────────
+  // ── Fetch leads when token is available ────────────────────────────────────
   useEffect(() => {
+    if (!token) {
+      // Not authenticated — clear leads and don't fetch
+      setLeads([]);
+      setStatus('idle');
+      return;
+    }
+
     let cancelled = false;
     setStatus('loading');
 
     api
-      .getLeads()
+      .getLeads(token)
       .then((res) => {
         if (!cancelled) {
           setLeads(res.data);
@@ -60,33 +69,45 @@ export function LeadsProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [token]);
 
   // ── POST /leads ────────────────────────────────────────────────────────────
-  const addLead = useCallback(async (data: ContactFormData) => {
-    const res = await api.createLead(data);
-    setLeads((prev) => [res.data, ...prev]);
-  }, []);
-
-  // ── PATCH /leads/:id/status ────────────────────────────────────────────────
-  const updateLeadStatus = useCallback(
-    async (id: string, newStatus: LeadStatus) => {
-      // Optimistic update first
-      setLeads((prev) =>
-        prev.map((l) => (l.id === id ? { ...l, status: newStatus } : l))
-      );
-      // Reconcile with server response
-      const res = await api.updateLeadStatus(id, newStatus);
-      setLeads((prev) => prev.map((l) => (l.id === id ? res.data : l)));
+  const addLead = useCallback(
+    async (data: ContactFormData) => {
+      const res = await api.createLead(data);
+      setLeads((prev) => [res.data, ...prev]);
     },
     []
   );
 
+  // ── PATCH /leads/:id/status ────────────────────────────────────────────────
+  const updateLeadStatus = useCallback(
+    async (id: string, newStatus: LeadStatus) => {
+      if (!token) throw new Error('Not authenticated');
+      setLeads((prev) =>
+        prev.map((l) => (l.id === id ? { ...l, status: newStatus } : l))
+      );
+      const res = await api.updateLeadStatus(id, newStatus, token);
+      setLeads((prev) => prev.map((l) => (l.id === id ? res.data : l)));
+    },
+    [token]
+  );
+
   // ── DELETE /leads/:id ──────────────────────────────────────────────────────
-  const deleteLead = useCallback(async (id: string) => {
-    setLeads((prev) => prev.filter((l) => l.id !== id));
-    await api.deleteLead(id);
-  }, []);
+  const deleteLead = useCallback(
+    async (id: string) => {
+      if (!token) throw new Error('Not authenticated');
+      setLeads((prev) => prev.filter((l) => l.id !== id));
+      try {
+        await api.deleteLead(id, token);
+      } catch (err) {
+        // Rollback optimistic delete on failure
+        api.getLeads(token).then((res) => setLeads(res.data));
+        throw err;
+      }
+    },
+    [token]
+  );
 
   // ── Derived stats ──────────────────────────────────────────────────────────
   const totalLeads = leads.length;

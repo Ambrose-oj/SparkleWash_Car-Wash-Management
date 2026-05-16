@@ -1,12 +1,15 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { LeadsProvider } from './context/LeadsContext';
+import { AuthProvider } from './context/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const DashboardLayout = lazy(() => import('./pages/DashboardLayout'));
 const DashboardOverview = lazy(() => import('./pages/DashboardOverview'));
 const LeadsPage = lazy(() => import('./pages/LeadsPage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
 
 function FullPageLoader() {
   return (
@@ -22,36 +25,46 @@ function FullPageLoader() {
 export default function App() {
   return (
     <BrowserRouter>
-      <LeadsProvider>
-        <Suspense fallback={<FullPageLoader />}>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/dashboard" element={<DashboardLayout />}>
-              <Route index element={<DashboardOverview />} />
-              <Route path="leads" element={<LeadsPage />} />
+      <AuthProvider>
+        <LeadsProvider>
+          <Suspense fallback={<FullPageLoader />}>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<LoginPage />} />
               <Route
-                path="analytics"
+                path="/dashboard"
                 element={
-                  <PlaceholderPage
-                    title="Analytics"
-                    description="Detailed conversion funnels, source tracking, and revenue attribution will live here."
-                  />
+                  <ProtectedRoute>
+                    <DashboardLayout />
+                  </ProtectedRoute>
                 }
-              />
-              <Route
-                path="settings"
-                element={
-                  <PlaceholderPage
-                    title="Settings"
-                    description="Configure notifications, team members, and CRM integrations from this panel."
-                  />
-                }
-              />
-            </Route>
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Suspense>
-      </LeadsProvider>
+              >
+                <Route index element={<DashboardOverview />} />
+                <Route path="leads" element={<LeadsPage />} />
+                <Route
+                  path="analytics"
+                  element={
+                    <PlaceholderPage
+                      title="Analytics"
+                      description="Detailed conversion funnels, source tracking, and revenue attribution will live here."
+                    />
+                  }
+                />
+                <Route
+                  path="settings"
+                  element={
+                    <PlaceholderPage
+                      title="Settings"
+                      description="Configure notifications, team members, and CRM integrations from this panel."
+                    />
+                  }
+                />
+              </Route>
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </LeadsProvider>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

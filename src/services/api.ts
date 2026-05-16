@@ -4,15 +4,8 @@
  * Data access layer for SparkleWash.
  *
  * Architecture:
- *   - Services & Testimonials → loaded from src/data/db.json (static catalog data)
- *   - Leads                  → fetched from Express + PostgreSQL backend
- *
- * This split is intentional: catalog data never changes at runtime, so it
- * lives in db.json (also used by the backend seed script to populate the DB).
- * Lead data is transactional and must persist — it always goes through the API.
- *
- * The Vite dev proxy rewrites /api/* → http://localhost:3001/api/*
- * In production, set VITE_API_BASE to your deployed backend URL.
+ *   - Services & Testimonials → loaded from src/data/db.json (static catalog)
+ *   - Leads                  → Express + PostgreSQL backend (JWT protected)
  */
 
 import type { Lead, Service, Testimonial, ContactFormData, LeadStatus } from '../types';
@@ -33,13 +26,19 @@ const BASE = import.meta.env.VITE_API_BASE ?? '/api';
 
 async function request<T>(
   path: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  token?: string
 ): Promise<ApiResponse<T>> {
-  const res = await fetch(`${BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...options.headers },
-    ...options,
-  });
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string>),
+  };
 
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${BASE}${path}`, { ...options, headers });
   const body: ApiResponse<T> = await res.json();
 
   if (!res.ok) {
@@ -55,11 +54,6 @@ function localResponse<T>(data: T, message = 'OK'): ApiResponse<T> {
 
 // ─── Services — served from db.json ──────────────────────────────────────────
 
-/**
- * Returns the service catalog from db.json.
- * Wrapped in a Promise<ApiResponse<T>> so callers don't need to change
- * when this later switches to a backend call.
- */
 export async function getServices(): Promise<ApiResponse<Service[]>> {
   return localResponse(db.services as Service[], `${db.services.length} services`);
 }
@@ -73,14 +67,12 @@ export async function getTestimonials(): Promise<ApiResponse<Testimonial[]>> {
   );
 }
 
-// ─── Leads — always hit the real backend ─────────────────────────────────────
+// ─── Leads — JWT protected backend ───────────────────────────────────────────
 
-/** GET /api/leads */
-export async function getLeads(): Promise<ApiResponse<Lead[]>> {
-  return request<Lead[]>('/leads');
+export async function getLeads(token: string): Promise<ApiResponse<Lead[]>> {
+  return request<Lead[]>('/leads', {}, token);
 }
 
-/** POST /api/leads */
 export async function createLead(data: ContactFormData): Promise<ApiResponse<Lead>> {
   return request<Lead>('/leads', {
     method: 'POST',
@@ -88,18 +80,21 @@ export async function createLead(data: ContactFormData): Promise<ApiResponse<Lea
   });
 }
 
-/** PATCH /api/leads/:id/status */
 export async function updateLeadStatus(
   id: string,
-  status: LeadStatus
+  status: LeadStatus,
+  token: string
 ): Promise<ApiResponse<Lead>> {
-  return request<Lead>(`/leads/${id}/status`, {
-    method: 'PATCH',
-    body: JSON.stringify({ status }),
-  });
+  return request<Lead>(
+    `/leads/${id}/status`,
+    { method: 'PATCH', body: JSON.stringify({ status }) },
+    token
+  );
 }
 
-/** DELETE /api/leads/:id */
-export async function deleteLead(id: string): Promise<ApiResponse<{ id: string }>> {
-  return request<{ id: string }>(`/leads/${id}`, { method: 'DELETE' });
+export async function deleteLead(
+  id: string,
+  token: string
+): Promise<ApiResponse<{ id: string }>> {
+  return request<{ id: string }>(`/leads/${id}`, { method: 'DELETE' }, token);
 }

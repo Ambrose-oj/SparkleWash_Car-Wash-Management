@@ -2,9 +2,11 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { checkConnection } from './db';
+import { authRouter } from './routes/auth';
 import { leadsRouter } from './routes/leads';
 import { servicesRouter } from './routes/services';
 import { testimonialsRouter } from './routes/testimonials';
+import { requireAuth } from './middleware/requireAuth';
 import { errorHandler } from './middleware/errorHandler';
 
 dotenv.config();
@@ -17,20 +19,24 @@ const PORT = Number(process.env.PORT) || 3001;
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   methods: ['GET', 'POST', 'PATCH', 'DELETE'],
-  allowedHeaders: ['Content-Type'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 app.use(express.json());
 
-// ─── Routes ───────────────────────────────────────────────────────────────────
+// ─── Public routes ────────────────────────────────────────────────────────────
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-app.use('/api/leads', leadsRouter);
+app.use('/api/auth', authRouter);
 app.use('/api/services', servicesRouter);
 app.use('/api/testimonials', testimonialsRouter);
+
+// ─── Protected routes (JWT required) ─────────────────────────────────────────
+
+app.use('/api/leads', requireAuth, leadsRouter);
 
 // ─── 404 catch-all ────────────────────────────────────────────────────────────
 
