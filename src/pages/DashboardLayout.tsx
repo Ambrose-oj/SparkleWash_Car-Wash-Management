@@ -5,7 +5,7 @@ import { DashboardHeader } from '../components/dashboard/DashboardHeader';
 const PAGE_META: Record<string, { title: string; subtitle: string }> = {
   '/dashboard': {
     title: 'Overview',
-    subtitle: 'Welcome back, TC Team',
+    subtitle: 'Welcome back, Admin',
   },
   '/dashboard/leads': {
     title: 'Leads',

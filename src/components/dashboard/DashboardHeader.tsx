@@ -39,7 +39,7 @@ export function DashboardHeader({ title, subtitle }: DashboardHeaderProps) {
 
         {/* Avatar */}
         <div className="w-9 h-9 rounded-lg bg-gold/20 border border-gold/30 flex items-center justify-center text-gold text-xs font-semibold font-body">
-          TC
+          A
         </div>
       </div>
     </header>
