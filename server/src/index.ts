@@ -71,6 +71,18 @@ app.use((_req, res) => {
 
 app.use(errorHandler);
 
+// ─── Keep-alive ping (prevents Render free tier from sleeping) ────────────────
+if (process.env.NODE_ENV === 'production' && process.env.RENDER_EXTERNAL_URL) {
+  setInterval(async () => {
+    try {
+      await fetch(`${process.env.RENDER_EXTERNAL_URL}/api/health`);
+      console.log('[Keep-alive] Pinged health endpoint');
+    } catch (err) {
+      console.error('[Keep-alive] Ping failed:', err);
+    }
+  }, 10 * 60 * 1000); // every 10 minutes
+}
+
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 
 async function start(): Promise<void> {
